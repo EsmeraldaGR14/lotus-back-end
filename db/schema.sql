@@ -4,21 +4,77 @@ CREATE DATABASE lotus_dev;
 
 \c lotus_dev;
 
-DROP TABLE IF EXISTS user;
-
+-- Users Table
 CREATE TABLE user (
     id SERIAL PRIMARY KEY,
-    user,
-    firstname,
-    lastname,
-    email,
-
+    username VARCHAR(75) NOT NULL,
+    name VARCHAR(75) NOT NULL,
+    email VARCHAR(254) NOT NULL UNIQUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
-DROP TABLE IF EXISTS budget;
-
+-- Budgets Table
 CREATE TABLE budget (
-    id,
-    name,
-
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(75) NOT NULL,
+    user_id INT REFERENCES user(id) ON DELETE CASCADE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
+
+-- Category Groups Table
+CREATE TABLE category_group (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(75) NOT NULL,
+    budget_id INT REFERENCES budget(id) ON DELETE CASCADE,
+    target NUMERIC(12, 2),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+-- Categories Table
+CREATE TABLE category (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(75) NOT NULL,
+    category_group_id INT REFERENCES category_group(id) ON DELETE CASCADE,
+    target NUMERIC(12, 2),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+-- Sub-categories Table
+CREATE TABLE sub_category (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(75) NOT NULL,
+    category_id INT REFERENCES category(id) ON DELETE CASCADE,
+    target NUMERIC(12, 2),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+-- Transaction Table 
+CREATE TABLE transaction (
+    id SERIAL PRIMARY KEY,
+    user_id INT REFERENCES user(id) ON DELETE CASCADE,
+    amount NUMERIC(12, 2) NOT NULL,
+    date DATE NOT NULL,
+    category_id INT REFERENCES category(id) ON DELETE CASCADE,
+    notes TEXT,  
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+-- Recurring Transaction Table 
+CREATE TABLE recurring_transaction (
+    id SERIAL PRIMARY KEY,
+    user_id INT REFERENCES user(id) ON DELETE CASCADE,
+    amount NUMERIC(12, 2) NOT NULL,
+    frequency VARCHAR(10) CHECK (frequency IN ('daily', 'weekly', 'monthly', 'yearly')) NOT NULL,
+    start_date DATE NOT NULL,
+    end_date DATE,  
+    category_id INT REFERENCES category(id) ON DELETE CASCADE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
